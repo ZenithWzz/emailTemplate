@@ -34,6 +34,34 @@
           <v-divider />
           <v-card-text class="d-flex flex-column gap-4">
             <div>
+              <div class="text-subtitle-1 font-weight-medium mb-1">เลือกเลย์เอาต์ตัวอย่าง</div>
+              <v-row dense>
+                <v-col v-for="option in layoutOptions" :key="option.key" cols="12" sm="6">
+                  <v-card
+                    class="layout-card"
+                    variant="tonal"
+                    :color="selectedLayout === option.key ? 'primary' : 'primary'"
+                    :elevation="selectedLayout === option.key ? 2 : 0"
+                    :class="{ 'layout-card--active': selectedLayout === option.key }"
+                    @click="applyLayout(option.key)"
+                  >
+                    <v-card-item>
+                      <div class="d-flex align-center justify-space-between">
+                        <div>
+                          <div class="text-subtitle-2 font-weight-medium">{{ option.title }}</div>
+                          <div class="text-caption text-medium-emphasis">{{ option.description }}</div>
+                        </div>
+                        <v-chip size="small" :color="selectedLayout === option.key ? 'white' : 'primary'" label variant="tonal">
+                          {{ selectedLayout === option.key ? 'กำลังใช้' : 'เลือก' }}
+                        </v-chip>
+                      </div>
+                    </v-card-item>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </div>
+
+            <div>
               <div class="text-subtitle-1 font-weight-medium mb-1">ความกว้างอีเมล</div>
               <v-slider
                 v-model="emailSettings.width"
@@ -136,6 +164,7 @@
               ghost-class="dragging-ghost"
               chosen-class="dragging-chosen"
               :animation="200"
+              @end="markCustomLayout"
             >
               <template #item="{ element: block, index }">
                 <v-expansion-panel :key="block.id" :value="block.id" elevation="0">
@@ -202,6 +231,7 @@
                   chosen-class="dragging-chosen"
                   :animation="200"
                   class="preview-draggable"
+                  @end="markCustomLayout"
                 >
                   <template #item="{ element: block }">
                     <div class="mb-4 drag-hover-wrap">
@@ -262,6 +292,15 @@ import ImageBlockEditor from '~/components/editors/ImageBlockEditor.vue';
 import TextBlockEditor from '~/components/editors/TextBlockEditor.vue';
 import { BlockStyles, BlockType, EmailBlock, EmailSettings } from '~/types/email';
 
+type PresetLayoutKey = 'heroCta' | 'twoSection' | 'newsletter';
+type LayoutKey = PresetLayoutKey | 'custom';
+type LayoutOption = {
+  key: PresetLayoutKey;
+  title: string;
+  description: string;
+  build: () => EmailBlock[];
+};
+
 const fontOptions = [
   'Inter, Arial, sans-serif',
   'Prompt, sans-serif',
@@ -280,23 +319,112 @@ const defaultStyles = (): BlockStyles => ({
   borderRadius: 8
 });
 
-const blocks = ref<EmailBlock[]>([
+const createTextBlock = (title: string, content: string, styles: Partial<BlockStyles> = {}): EmailBlock => ({
+  id: uuid(),
+  type: 'text',
+  title,
+  content,
+  styles: { ...defaultStyles(), ...styles }
+});
+
+const createImageBlock = (title: string, src: string, alt = 'ภาพตัวอย่าง', styles: Partial<BlockStyles> = {}): EmailBlock => ({
+  id: uuid(),
+  type: 'image',
+  title,
+  content: src,
+  imageAlt: alt,
+  imageFullWidth: true,
+  styles: { ...defaultStyles(), ...styles }
+});
+
+const createButtonBlock = (
+  title: string,
+  label: string,
+  url: string,
+  styles: Partial<BlockStyles> = {}
+): EmailBlock => ({
+  id: uuid(),
+  type: 'button',
+  title,
+  content: label,
+  actionUrl: url,
+  styles: { ...defaultStyles(), ...styles }
+});
+
+const createDividerBlock = (title = 'Divider', styles: Partial<BlockStyles> = {}): EmailBlock => ({
+  id: uuid(),
+  type: 'divider',
+  title,
+  content: '',
+  styles: { ...defaultStyles(), ...styles }
+});
+
+const layoutOptions: LayoutOption[] = [
   {
-    id: uuid(),
-    type: 'text',
-    title: 'Hero Message',
-    content: '<h2 style="margin:0 0 8px">ยินดีต้อนรับสู่แคมเปญใหม่ของคุณ</h2><p style="margin:0">เริ่มปรับแต่งข้อความและรูปภาพเพื่อสร้างอีเมลที่ใช่สำหรับทุกแคมเปญได้เลย</p>',
-    styles: defaultStyles()
+    key: 'heroCta',
+    title: 'Hero + CTA',
+    description: 'หัวเรื่องเด่นพร้อมปุ่มหลัก',
+    build: () => [
+      createTextBlock(
+        'Hero Message',
+        '<h2 style="margin:0 0 8px">ยินดีต้อนรับสู่แคมเปญใหม่ของคุณ</h2><p style="margin:0">เริ่มปรับแต่งข้อความและรูปภาพเพื่อสร้างอีเมลที่ใช่สำหรับทุกแคมเปญได้เลย</p>',
+        { padding: '20px', fontSize: 18, align: 'center' }
+      ),
+      createButtonBlock('Primary CTA', 'เริ่มต้นใช้งาน', 'https://example.com', { align: 'center', borderRadius: 12 })
+    ]
   },
   {
-    id: uuid(),
-    type: 'button',
-    title: 'Primary CTA',
-    content: 'เริ่มต้นใช้งาน',
-    actionUrl: 'https://example.com',
-    styles: { ...defaultStyles(), align: 'center', borderRadius: 12 }
+    key: 'twoSection',
+    title: 'ภาพ + ข้อความ',
+    description: 'โชว์รูปภาพพร้อมข้อความอธิบาย',
+    build: () => [
+      createImageBlock(
+        'Hero Image',
+        'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80',
+        'ภาพแนะนำ',
+        { padding: '0px', borderRadius: 16 }
+      ),
+      createTextBlock(
+        'รายละเอียด',
+        '<h3 style="margin:0 0 10px">สร้างแคมเปญที่สะท้อนแบรนด์</h3><p style="margin:0">ปรับโทนสี ตัวอักษร และรูปแบบบล็อกให้ตรงกับอัตลักษณ์ของคุณ พร้อมลากวางสลับตำแหน่งได้ทันที</p>',
+        { padding: '18px' }
+      )
+    ]
+  },
+  {
+    key: 'newsletter',
+    title: 'จดหมายข่าว',
+    description: 'หลายส่วนพร้อมคั่นแบ่งหัวข้อ',
+    build: () => [
+      createTextBlock(
+        'หัวข้อจดหมาย',
+        '<p style="margin:0; text-transform: uppercase; letter-spacing: 1px; font-size: 13px;">WEEKLY DIGEST</p><h3 style="margin:4px 0 10px">อัปเดตผลิตภัณฑ์และโปรโมชันล่าสุด</h3>',
+        { padding: '18px', background: '#f8fafc' }
+      ),
+      createDividerBlock('Section Divider', { padding: '10px', background: 'transparent' }),
+      createTextBlock(
+        'บล็อกเนื้อหา',
+        '<p style="margin:0">ใส่รายละเอียดแต่ละหัวข้อของคุณที่นี่ พร้อมลิงก์เรียกดูเพิ่มเติม</p>',
+        { padding: '18px' }
+      ),
+      createButtonBlock('CTA รอง', 'อ่านเพิ่มเติม', 'https://example.com/news', { align: 'left', borderRadius: 10 })
+    ]
   }
-]);
+];
+
+const selectedLayout = ref<LayoutKey>(layoutOptions[0].key);
+const blocks = ref<EmailBlock[]>(layoutOptions[0].build());
+
+const applyLayout = (key: PresetLayoutKey) => {
+  const option = layoutOptions.find((item) => item.key === key);
+  if (!option) return;
+  blocks.value = option.build();
+  selectedLayout.value = key;
+};
+
+const markCustomLayout = () => {
+  selectedLayout.value = 'custom';
+};
 
 const emailSettings = ref<EmailSettings>({
   width: 720,
@@ -371,6 +499,7 @@ const addBlock = (type: BlockType) => {
     styles: defaultStyles()
   };
   blocks.value.push(newBlock);
+  markCustomLayout();
 };
 
 const moveBlock = (index: number, direction: number) => {
@@ -380,6 +509,7 @@ const moveBlock = (index: number, direction: number) => {
   const [item] = updated.splice(index, 1);
   updated.splice(newIndex, 0, item);
   blocks.value = updated;
+  markCustomLayout();
 };
 
 const duplicateBlock = (block: EmailBlock) => {
@@ -389,12 +519,14 @@ const duplicateBlock = (block: EmailBlock) => {
     title: `${block.title} (คัดลอก)`
   };
   blocks.value.push(copy);
+  markCustomLayout();
 };
 
 const removeBlock = (id: string) => {
   const index = blocks.value.findIndex((b) => b.id === id);
   if (index !== -1) {
     blocks.value.splice(index, 1);
+    markCustomLayout();
   }
 };
 
@@ -455,6 +587,24 @@ const downloadHtml = () => {
   border-radius: 12px;
   background: rgba(33, 150, 243, 0.06);
   margin-bottom: 12px;
+}
+
+.layout-card {
+  cursor: pointer;
+  border-radius: 12px;
+  border: 1px solid rgba(33, 150, 243, 0.16);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.layout-card:hover {
+  box-shadow: 0 10px 38px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  border-color: rgba(33, 150, 243, 0.32);
+}
+
+.layout-card--active {
+  box-shadow: 0 12px 42px rgba(33, 150, 243, 0.16);
+  border-color: rgba(33, 150, 243, 0.5);
 }
 
 .drag-handle {
