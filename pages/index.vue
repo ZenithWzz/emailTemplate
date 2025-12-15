@@ -1,21 +1,23 @@
 <template>
-  <v-container class="py-8" fluid>
-    <v-row class="mb-6" justify="space-between" align="center">
+  <v-container class="py-10" fluid>
+    <v-row class="align-center mb-7 page-header" justify="space-between">
       <v-col cols="12" md="8">
-        <div class="d-flex align-center gap-3">
-          <v-icon color="primary" size="36">mdi-email-edit-outline</v-icon>
+        <div class="d-flex align-center gap-4">
+          <v-avatar size="44" color="primary" variant="tonal">
+            <v-icon>mdi-email-edit-outline</v-icon>
+          </v-avatar>
           <div>
-            <h1 class="text-h4 font-weight-bold mb-1">Email Template Builder</h1>
-            <p class="text-body-1 text-medium-emphasis mb-0">สร้างและจัดการเทมเพลตอีเมลด้วยตัวเอง พร้อมปรับแต่งสไตล์และจัดวางองค์ประกอบได้อย่างอิสระ</p>
+            <h1 class="text-h4 font-weight-bold mb-2">Minimal Email Builder</h1>
+            <p class="text-body-1 text-medium-emphasis mb-0">จัดเลย์เอาต์อีเมลแบบเรียบง่าย เติมข้อความ รูปภาพ ปุ่ม และปรับสไตล์ได้ตามใจ</p>
           </div>
         </div>
       </v-col>
-      <v-col cols="12" md="4" class="d-flex justify-end align-center">
-        <v-btn color="primary" class="mr-3" @click="copyHtml">
+      <v-col cols="12" md="4" class="d-flex justify-end align-center gap-2">
+        <v-btn variant="text" color="primary" @click="copyHtml">
           <v-icon start>mdi-content-copy</v-icon>
           คัดลอก HTML
         </v-btn>
-        <v-btn color="secondary" variant="outlined" @click="downloadHtml">
+        <v-btn color="primary" class="rounded-xl" @click="downloadHtml">
           <v-icon start>mdi-download</v-icon>
           ดาวน์โหลดไฟล์
         </v-btn>
@@ -24,7 +26,7 @@
 
     <v-row>
       <v-col cols="12" md="4">
-        <v-card elevation="1" class="mb-4">
+        <v-card elevation="0" class="mb-4 surface-panel">
           <v-card-title class="d-flex align-center">
             <v-icon class="mr-2" color="primary">mdi-view-dashboard</v-icon>
             เลย์เอาต์ & การตั้งค่า
@@ -69,7 +71,7 @@
           </v-card-text>
         </v-card>
 
-        <v-card elevation="1" class="mb-4">
+        <v-card elevation="0" class="mb-4 surface-panel">
           <v-card-title class="d-flex align-center">
             <v-icon class="mr-2" color="primary">mdi-shape-rectangle-plus</v-icon>
             เพิ่มบล็อกใหม่
@@ -95,7 +97,7 @@
           </v-card-text>
         </v-card>
 
-        <v-card elevation="1">
+        <v-card elevation="0" class="surface-panel">
           <v-card-title class="d-flex align-center">
             <v-icon class="mr-2" color="primary">mdi-palette</v-icon>
             Custom CSS
@@ -115,56 +117,73 @@
       </v-col>
 
       <v-col cols="12" md="8">
-        <v-card elevation="1" class="mb-4">
+        <v-card elevation="0" class="mb-4 surface-panel">
           <v-card-title class="d-flex align-center">
             <v-icon class="mr-2" color="primary">mdi-format-list-bulleted</v-icon>
             โครงสร้างบล็อก
           </v-card-title>
           <v-divider />
           <v-card-text>
-            <v-alert type="info" variant="tonal" class="mb-4">
-              จัดเรียง ลบ หรือปรับรายละเอียดของบล็อกแต่ละส่วนได้ทันที พร้อมพรีวิวแบบสด
-            </v-alert>
+            <div class="helper-row">
+              <v-chip size="small" color="primary" variant="tonal" class="text-caption">ลากเพื่อเรียงลำดับ</v-chip>
+              <span class="text-caption text-medium-emphasis">แก้ไขหรือลบได้ทันที แล้วดูพรีวิวแบบเรียลไทม์</span>
+            </div>
 
-            <v-expansion-panels multiple>
-              <v-expansion-panel
-                v-for="(block, index) in blocks"
-                :key="block.id"
-                :value="block.id"
-                elevation="0"
-              >
-                <v-expansion-panel-title class="d-flex align-center">
-                  <div class="d-flex align-center gap-3 flex-1">
-                    <v-avatar size="32" color="primary" variant="tonal">
-                      <v-icon>{{ blockIcon(block.type) }}</v-icon>
-                    </v-avatar>
-                    <div class="text-subtitle-1">{{ block.title }}</div>
-                    <div class="text-caption text-medium-emphasis">{{ block.type.toUpperCase() }}</div>
-                  </div>
-                  <div class="d-flex align-center gap-1">
-                    <v-btn size="small" icon variant="text" @click.stop="moveBlock(index, -1)" :disabled="index === 0">
-                      <v-icon>mdi-arrow-up</v-icon>
-                    </v-btn>
-                    <v-btn size="small" icon variant="text" @click.stop="moveBlock(index, 1)" :disabled="index === blocks.length - 1">
-                      <v-icon>mdi-arrow-down</v-icon>
-                    </v-btn>
-                    <v-btn size="small" icon variant="text" @click.stop="duplicateBlock(block)">
-                      <v-icon>mdi-content-duplicate</v-icon>
-                    </v-btn>
-                    <v-btn size="small" icon variant="text" color="error" @click.stop="removeBlock(block.id)">
-                      <v-icon>mdi-delete-outline</v-icon>
-                    </v-btn>
-                  </div>
-                </v-expansion-panel-title>
-                <v-expansion-panel-text>
-                  <component :is="blockEditorComponent(block)" v-model="blocks[index]" />
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-            </v-expansion-panels>
+            <Draggable
+              v-model="blocks"
+              item-key="id"
+              handle=".drag-handle"
+              ghost-class="dragging-ghost"
+              chosen-class="dragging-chosen"
+              :animation="200"
+            >
+              <template #item="{ element: block, index }">
+                <v-expansion-panel :key="block.id" :value="block.id" elevation="0">
+                  <v-expansion-panel-title class="d-flex align-center">
+                    <div class="d-flex align-center gap-3 flex-1">
+                      <v-btn
+                        size="small"
+                        icon
+                        variant="text"
+                        class="mr-2 drag-handle"
+                        color="primary"
+                        title="ลากเพื่อย้ายบล็อก"
+                      >
+                        <v-icon>mdi-drag</v-icon>
+                      </v-btn>
+                      <v-avatar size="32" color="primary" variant="tonal">
+                        <v-icon>{{ blockIcon(block.type) }}</v-icon>
+                      </v-avatar>
+                      <div>
+                        <div class="text-subtitle-1">{{ block.title }}</div>
+                        <div class="text-caption text-medium-emphasis">{{ block.type.toUpperCase() }}</div>
+                      </div>
+                    </div>
+                    <div class="d-flex align-center gap-1">
+                      <v-btn size="small" icon variant="text" @click.stop="moveBlock(index, -1)" :disabled="index === 0">
+                        <v-icon>mdi-arrow-up</v-icon>
+                      </v-btn>
+                      <v-btn size="small" icon variant="text" @click.stop="moveBlock(index, 1)" :disabled="index === blocks.length - 1">
+                        <v-icon>mdi-arrow-down</v-icon>
+                      </v-btn>
+                      <v-btn size="small" icon variant="text" @click.stop="duplicateBlock(block)">
+                        <v-icon>mdi-content-duplicate</v-icon>
+                      </v-btn>
+                      <v-btn size="small" icon variant="text" color="error" @click.stop="removeBlock(block.id)">
+                        <v-icon>mdi-delete-outline</v-icon>
+                      </v-btn>
+                    </div>
+                  </v-expansion-panel-title>
+                  <v-expansion-panel-text>
+                    <component :is="blockEditorComponent(block)" v-model="blocks[index]" />
+                  </v-expansion-panel-text>
+                </v-expansion-panel>
+              </template>
+            </Draggable>
           </v-card-text>
         </v-card>
 
-        <v-card elevation="2" class="preview-card">
+        <v-card elevation="0" class="preview-card surface-panel">
           <v-card-title class="d-flex align-center">
             <v-icon class="mr-2" color="primary">mdi-monitor-eye</v-icon>
             พรีวิวอีเมล
@@ -220,6 +239,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import Draggable from 'vuedraggable';
 import { v4 as uuid } from 'uuid';
 import ButtonBlockEditor from '~/components/editors/ButtonBlockEditor.vue';
 import DividerBlockEditor from '~/components/editors/DividerBlockEditor.vue';
@@ -399,17 +419,62 @@ const downloadHtml = () => {
 </script>
 
 <style scoped>
+.page-header {
+  background: linear-gradient(90deg, rgba(33, 150, 243, 0.06), rgba(33, 150, 243, 0));
+  border-radius: 16px;
+  padding: 16px 20px;
+}
+
+.surface-panel {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 50px rgba(17, 24, 39, 0.04);
+}
+
+.helper-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(33, 150, 243, 0.06);
+  margin-bottom: 12px;
+}
+
+.drag-handle {
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.dragging-ghost {
+  opacity: 0.4;
+}
+
+.dragging-chosen {
+  outline: 2px dashed var(--v-theme-primary);
+  border-radius: 12px;
+  background: rgba(33, 150, 243, 0.04);
+}
+
 .email-preview {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
+  background: radial-gradient(circle at 20% 20%, rgba(33, 150, 243, 0.05), transparent 35%),
+    radial-gradient(circle at 80% 0%, rgba(124, 58, 237, 0.04), transparent 40%),
+    #ffffff;
 }
 
 .email-preview:hover {
-  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
 }
 
 .preview-block {
   overflow: hidden;
+  border-radius: 14px;
 }
 
 .gap-1 {
