@@ -123,60 +123,44 @@
           <v-divider />
           <v-card-text>
             <v-alert type="info" variant="tonal" class="mb-4">
-              จัดเรียง ลบ หรือปรับรายละเอียดของบล็อกแต่ละส่วนได้ทันที พร้อมพรีวิวแบบสด หรือจับลากเพื่อย้ายตำแหน่ง
+              จัดเรียง ลบ หรือปรับรายละเอียดของบล็อกแต่ละส่วนได้ทันที พร้อมพรีวิวแบบสด
             </v-alert>
 
-            <Draggable
-              v-model="blocks"
-              item-key="id"
-              handle=".drag-handle"
-              ghost-class="dragging-ghost"
-              chosen-class="dragging-chosen"
-              :animation="200"
-            >
-              <template #item="{ element: block, index }">
-                <v-expansion-panel :key="block.id" :value="block.id" elevation="0">
-                  <v-expansion-panel-title class="d-flex align-center">
-                    <div class="d-flex align-center gap-3 flex-1">
-                      <v-btn
-                        size="small"
-                        icon
-                        variant="text"
-                        class="mr-2 drag-handle"
-                        color="primary"
-                        title="ลากเพื่อย้ายบล็อก"
-                      >
-                        <v-icon>mdi-drag</v-icon>
-                      </v-btn>
-                      <v-avatar size="32" color="primary" variant="tonal">
-                        <v-icon>{{ blockIcon(block.type) }}</v-icon>
-                      </v-avatar>
-                      <div>
-                        <div class="text-subtitle-1">{{ block.title }}</div>
-                        <div class="text-caption text-medium-emphasis">{{ block.type.toUpperCase() }}</div>
-                      </div>
-                    </div>
-                    <div class="d-flex align-center gap-1">
-                      <v-btn size="small" icon variant="text" @click.stop="moveBlock(index, -1)" :disabled="index === 0">
-                        <v-icon>mdi-arrow-up</v-icon>
-                      </v-btn>
-                      <v-btn size="small" icon variant="text" @click.stop="moveBlock(index, 1)" :disabled="index === blocks.length - 1">
-                        <v-icon>mdi-arrow-down</v-icon>
-                      </v-btn>
-                      <v-btn size="small" icon variant="text" @click.stop="duplicateBlock(block)">
-                        <v-icon>mdi-content-duplicate</v-icon>
-                      </v-btn>
-                      <v-btn size="small" icon variant="text" color="error" @click.stop="removeBlock(block.id)">
-                        <v-icon>mdi-delete-outline</v-icon>
-                      </v-btn>
-                    </div>
-                  </v-expansion-panel-title>
-                  <v-expansion-panel-text>
-                    <component :is="blockEditorComponent(block)" v-model="blocks[index]" />
-                  </v-expansion-panel-text>
-                </v-expansion-panel>
-              </template>
-            </Draggable>
+            <v-expansion-panels multiple>
+              <v-expansion-panel
+                v-for="(block, index) in blocks"
+                :key="block.id"
+                :value="block.id"
+                elevation="0"
+              >
+                <v-expansion-panel-title class="d-flex align-center">
+                  <div class="d-flex align-center gap-3 flex-1">
+                    <v-avatar size="32" color="primary" variant="tonal">
+                      <v-icon>{{ blockIcon(block.type) }}</v-icon>
+                    </v-avatar>
+                    <div class="text-subtitle-1">{{ block.title }}</div>
+                    <div class="text-caption text-medium-emphasis">{{ block.type.toUpperCase() }}</div>
+                  </div>
+                  <div class="d-flex align-center gap-1">
+                    <v-btn size="small" icon variant="text" @click.stop="moveBlock(index, -1)" :disabled="index === 0">
+                      <v-icon>mdi-arrow-up</v-icon>
+                    </v-btn>
+                    <v-btn size="small" icon variant="text" @click.stop="moveBlock(index, 1)" :disabled="index === blocks.length - 1">
+                      <v-icon>mdi-arrow-down</v-icon>
+                    </v-btn>
+                    <v-btn size="small" icon variant="text" @click.stop="duplicateBlock(block)">
+                      <v-icon>mdi-content-duplicate</v-icon>
+                    </v-btn>
+                    <v-btn size="small" icon variant="text" color="error" @click.stop="removeBlock(block.id)">
+                      <v-icon>mdi-delete-outline</v-icon>
+                    </v-btn>
+                  </div>
+                </v-expansion-panel-title>
+                <v-expansion-panel-text>
+                  <component :is="blockEditorComponent(block)" v-model="blocks[index]" />
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
           </v-card-text>
         </v-card>
 
@@ -236,7 +220,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import Draggable from 'vuedraggable';
 import { v4 as uuid } from 'uuid';
 import ButtonBlockEditor from '~/components/editors/ButtonBlockEditor.vue';
 import DividerBlockEditor from '~/components/editors/DividerBlockEditor.vue';
@@ -416,23 +399,6 @@ const downloadHtml = () => {
 </script>
 
 <style scoped>
-.drag-handle {
-  cursor: grab;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
-
-.dragging-ghost {
-  opacity: 0.5;
-}
-
-.dragging-chosen {
-  outline: 2px dashed var(--v-theme-primary);
-  border-radius: 12px;
-}
-
 .email-preview {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
