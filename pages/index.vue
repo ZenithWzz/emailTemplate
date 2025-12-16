@@ -24,8 +24,8 @@
       </v-col>
     </v-row>
 
-    <v-row>
-      <v-col cols="12" md="4">
+    <v-row class="builder-grid">
+      <v-col cols="12" lg="3" class="left-rail">
         <v-card elevation="0" class="mb-4 surface-panel">
           <v-card-title class="d-flex align-center">
             <v-icon class="mr-2" color="primary">mdi-view-dashboard</v-icon>
@@ -143,9 +143,72 @@
           </v-card-text>
         </v-card>
       </v-col>
+      <v-col cols="12" lg="5" class="middle-preview">
+        <v-card elevation="0" class="preview-card surface-panel">
+          <v-card-title class="d-flex align-center">
+            <v-icon class="mr-2" color="primary">mdi-monitor-eye</v-icon>
+            พรีวิวอีเมล
+          </v-card-title>
+          <v-divider />
+          <v-card-text>
+            <div class="d-flex justify-center">
+              <div class="email-preview" :style="emailContainerStyles">
+                <component :is="'style'" id="custom-css-block" v-if="customCss">
+                  {{ customCss }}
+                </component>
+                <Draggable
+                  v-model="blocks"
+                  item-key="id"
+                  ghost-class="dragging-ghost"
+                  chosen-class="dragging-chosen"
+                  :animation="200"
+                  class="preview-draggable"
+                  @end="markCustomLayout"
+                >
+                  <template #item="{ element: block }">
+                    <div class="mb-4 drag-hover-wrap">
+                      <div :style="blockStyles(block)" class="preview-block draggable-preview-block">
+                        <div class="drag-free-overlay">
+                          <v-icon size="18" color="primary">mdi-drag</v-icon>
+                          <span class="text-caption text-medium-emphasis">ลากเพื่อย้าย</span>
+                        </div>
+                        <template v-if="block.type === 'text'">
+                          <div v-html="block.content" />
+                        </template>
+                        <template v-else-if="block.type === 'image'">
+                          <div class="text-center">
+                            <v-img :src="block.content" :alt="block.imageAlt || 'image block'" class="rounded" :width="block.imageFullWidth ? '100%' : 'auto'" max-width="100%" />
+                            <div v-if="block.imageAlt" class="text-caption text-medium-emphasis mt-2">{{ block.imageAlt }}</div>
+                          </div>
+                        </template>
+                        <template v-else-if="block.type === 'button'">
+                          <div :class="`text-${block.styles.align}`">
+                            <v-btn
+                              :href="block.actionUrl || '#'"
+                              color="primary"
+                              size="large"
+                              :style="{ borderRadius: `${block.styles.borderRadius}px` }"
+                              target="_blank"
+                            >
+                              {{ block.content || 'Action' }}
+                            </v-btn>
+                          </div>
+                        </template>
+                        <template v-else-if="block.type === 'divider'">
+                          <v-divider thickness="2" />
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </Draggable>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
 
-      <v-col cols="12" md="8">
-        <v-card elevation="0" class="mb-4 surface-panel">
+      <v-col cols="12" lg="4">
+        <v-card elevation="0" class="surface-panel">
           <v-card-title class="d-flex align-center">
             <v-icon class="mr-2" color="primary">mdi-format-list-bulleted</v-icon>
             โครงสร้างบล็อก
@@ -209,68 +272,6 @@
                 </v-expansion-panel>
               </template>
             </Draggable>
-          </v-card-text>
-        </v-card>
-
-        <v-card elevation="0" class="preview-card surface-panel">
-          <v-card-title class="d-flex align-center">
-            <v-icon class="mr-2" color="primary">mdi-monitor-eye</v-icon>
-            พรีวิวอีเมล
-          </v-card-title>
-          <v-divider />
-          <v-card-text>
-            <div class="d-flex justify-center">
-              <div class="email-preview" :style="emailContainerStyles">
-                <component :is="'style'" id="custom-css-block" v-if="customCss">
-                  {{ customCss }}
-                </component>
-                <Draggable
-                  v-model="blocks"
-                  item-key="id"
-                  ghost-class="dragging-ghost"
-                  chosen-class="dragging-chosen"
-                  :animation="200"
-                  class="preview-draggable"
-                  @end="markCustomLayout"
-                >
-                  <template #item="{ element: block }">
-                    <div class="mb-4 drag-hover-wrap">
-                      <div :style="blockStyles(block)" class="preview-block draggable-preview-block">
-                        <div class="drag-free-overlay">
-                          <v-icon size="18" color="primary">mdi-drag</v-icon>
-                          <span class="text-caption text-medium-emphasis">ลากเพื่อย้าย</span>
-                        </div>
-                        <template v-if="block.type === 'text'">
-                          <div v-html="block.content" />
-                        </template>
-                        <template v-else-if="block.type === 'image'">
-                          <div class="text-center">
-                            <v-img :src="block.content" :alt="block.imageAlt || 'image block'" class="rounded" :width="block.imageFullWidth ? '100%' : 'auto'" max-width="100%" />
-                            <div v-if="block.imageAlt" class="text-caption text-medium-emphasis mt-2">{{ block.imageAlt }}</div>
-                          </div>
-                        </template>
-                        <template v-else-if="block.type === 'button'">
-                          <div :class="`text-${block.styles.align}`">
-                            <v-btn
-                              :href="block.actionUrl || '#'"
-                              color="primary"
-                              size="large"
-                              :style="{ borderRadius: `${block.styles.borderRadius}px` }"
-                              target="_blank"
-                            >
-                              {{ block.content || 'Action' }}
-                            </v-btn>
-                          </div>
-                        </template>
-                        <template v-else-if="block.type === 'divider'">
-                          <v-divider thickness="2" />
-                        </template>
-                      </div>
-                    </div>
-                  </template>
-                </Draggable>
-              </div>
-            </div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -577,6 +578,23 @@ const downloadHtml = () => {
   border-radius: 16px;
   background: #ffffff;
   box-shadow: 0 10px 50px rgba(17, 24, 39, 0.04);
+}
+
+.builder-grid {
+  row-gap: 18px;
+  column-gap: 12px;
+}
+
+.left-rail {
+  max-width: 360px;
+}
+
+.middle-preview {
+  display: flex;
+}
+
+.middle-preview .surface-panel {
+  flex: 1;
 }
 
 .helper-row {
